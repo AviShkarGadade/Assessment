@@ -72,7 +72,25 @@ class _UserListScreenState extends State<UserListScreen> {
                       (_userBloc.state is! UserLoaded)) {
                     return Center(child: CircularProgressIndicator());
                   } else if (state is UserError) {
-                    return Center(child: Text(state.message));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Oops! ${state.message}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.red, fontSize: 16),
+                          ),
+                          SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              _userBloc.add(FetchUsers(isRefresh: true));
+                            },
+                            child: Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
                   } else if (state is UserLoaded) {
                     if (state.users.isEmpty) {
                       return Center(child: Text("No users found"));

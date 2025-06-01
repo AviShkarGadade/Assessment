@@ -23,6 +23,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   bool isLoading = true;
 
+  String? postError;
+  String? todoError;
+
   @override
   void initState() {
     super.initState();
@@ -30,13 +33,27 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Future<void> fetchDetails() async {
-    final fetchedPosts = await repo.fetchPosts(widget.user.id);
-    final fetchedTodos = await repo.fetchTodos(widget.user.id);
     setState(() {
-      posts = fetchedPosts;
-      todos = fetchedTodos;
-      isLoading = false;
+      isLoading = true;
+      postError = null;
+      todoError = null;
     });
+
+    try {
+      final fetchedPosts = await repo.fetchPosts(widget.user.id);
+      setState(() => posts = fetchedPosts);
+    } catch (e) {
+      setState(() => postError = e.toString());
+    }
+
+    try {
+      final fetchedTodos = await repo.fetchTodos(widget.user.id);
+      setState(() => todos = fetchedTodos);
+    } catch (e) {
+      setState(() => todoError = e.toString());
+    }
+
+    setState(() => isLoading = false);
   }
 
   void _addPost() {
@@ -111,32 +128,55 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   SizedBox(height: 20),
 
                   Text("Posts", style: Theme.of(context).textTheme.titleLarge),
-                  ...posts.map(
-                    (post) => Card(
-                      elevation: 2,
-                      margin: EdgeInsets.symmetric(vertical: 6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ListTile(
-                        title: Text(
-                          post.title,
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                  if (postError != null)
+                    Column(
+                      children: [
+                        Text(postError!, style: TextStyle(color: Colors.red)),
+                        TextButton(
+                          onPressed: fetchDetails,
+                          child: Text("Retry"),
                         ),
-                        subtitle: Text(post.body),
+                      ],
+                    )
+                  else
+                    ...posts.map(
+                      (post) => Card(
+                        elevation: 2,
+                        margin: EdgeInsets.symmetric(vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            post.title,
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(post.body),
+                        ),
                       ),
                     ),
-                  ),
 
                   SizedBox(height: 20),
+
                   Text("Todos", style: Theme.of(context).textTheme.titleLarge),
-                  ...todos.map(
-                    (todo) => CheckboxListTile(
-                      value: todo.completed,
-                      title: Text(todo.todo),
-                      onChanged: null,
+                  if (todoError != null)
+                    Column(
+                      children: [
+                        Text(todoError!, style: TextStyle(color: Colors.red)),
+                        TextButton(
+                          onPressed: fetchDetails,
+                          child: Text("Retry"),
+                        ),
+                      ],
+                    )
+                  else
+                    ...todos.map(
+                      (todo) => CheckboxListTile(
+                        value: todo.completed,
+                        title: Text(todo.todo),
+                        onChanged: null,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
