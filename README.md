@@ -1,4 +1,3 @@
-UserVault
 
 A clean, responsive, and feature-rich Flutter application to search, browse, and explore users from a remote API—complete with offline caching, theme toggle, and modern UI.
 
